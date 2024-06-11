@@ -1,0 +1,166 @@
+//
+// Copyright (c) 2024 Bryan Phillippe
+//
+// This software is free to use for any purpose, provided this copyright
+// notice is preserved.
+//
+
+#pragma once
+
+#include <stdexcept>
+#include <unistd.h>
+#include <cerrno>
+
+namespace posixcc {
+
+    class posixcc_error: public std::runtime_error {
+        public:
+
+        const int error;
+
+        explicit posixcc_error(int e);
+    };
+
+    /**
+     * A wrapper class for providing automatic destruction semantics for file
+     * descriptors. Use this as you would a normal file descriptor; if not
+     * explicitly closed, it will automatically be closed upon destruction
+     * (such as when it goes out of scope).
+     *
+     * Additional convenience methods provided.
+     */
+    class auto_fd final {
+        protected:
+
+        int fd{-1};
+
+        public:
+
+        /**
+         * Construction
+         */
+        auto_fd(int i = -1) noexcept;
+        auto_fd(const auto_fd& i) noexcept;
+        auto_fd(auto_fd&& i) noexcept;
+        ~auto_fd();
+
+        /**
+         * Assignment
+         */
+        auto_fd& operator=(int i) noexcept;
+        auto_fd& operator=(const auto_fd& i) noexcept;
+        auto_fd& operator=(auto_fd&& i) noexcept;
+
+        /**
+         * Context-sensitive usage
+         */
+        operator int() const noexcept;
+        explicit operator bool() const noexcept;
+
+        /**
+         * Comparison of numerical file descriptor values is seldom an
+         * intended operation
+         */
+        bool operator==(const auto_fd&) = delete;
+
+        /**
+         * Getters and setters
+         */
+        int get() const noexcept;
+        int set(int i) noexcept;
+
+        /**
+         * Cleanup
+         */
+        int release() noexcept;
+        void close() noexcept;
+    };
+
+    /**
+     * A wrapper class for providing automatic destruction semantics for pipes.
+     * Close reader/writer ends and use as you would a regular pipe.
+     * Both ends are automatically closed when the pipe goes out of scope.
+     *
+     * Additional convenience methods provided.
+     */
+    class auto_pipe {
+        protected:
+
+        auto_fd read_fd{};
+        auto_fd write_fd{};
+
+        public:
+
+        /**
+         * Construction
+         */
+        auto_pipe();
+        auto_pipe(const auto_pipe& p) noexcept;
+        auto_pipe(auto_pipe&& p) noexcept;
+        virtual ~auto_pipe();
+
+        /**
+         * Assignment
+         */
+         auto_pipe& operator=(const auto_pipe& p) noexcept = default;
+         auto_pipe& operator=(auto_pipe&& p) noexcept;
+
+        /**
+         * Context-sensitive usage
+         */
+         explicit operator bool() const noexcept;
+
+        /**
+         * Pipe comparison never makes sense
+         */
+         bool operator==(const auto_pipe&) = delete;
+
+        /**
+         * Getters
+         */
+        int get_rfd() const noexcept;
+        int get_wfd() const noexcept;
+
+        /**
+         * Cleanup
+         */
+        auto_pipe& close_rfd() noexcept;
+        auto_pipe& close_wfd() noexcept;
+        auto_pipe& close() noexcept;
+    };
+
+    class process {
+        protected:
+
+        mutable pid_t pid{-1};
+
+        public:
+
+        process() noexcept = default;
+        template<class Fn, class... Args>
+        explicit process(Fn&& f, Args&&... args);
+
+        pid_t get_id() const noexcept;
+
+        int join() const;
+    };
+}
+
+/*
+ * Inline definitions here
+ */
+
+template<class Fn, class... Args>
+posixcc::process::process(Fn&& f, Args&&... args)
+{
+    switch (pid = ::fork()) {
+    case -1:
+        throw posixcc::posixcc_error{errno};
+        // Not reached
+
+    case 0:
+        f(args...);
+        ::exit(0);
+        // Not reached
+    }
+}
