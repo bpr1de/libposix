@@ -144,6 +144,56 @@ namespace posixcc {
 
         int join() const;
     };
+
+    //
+    // A module symbol - a pointer to a C symbol loaded from a module object.
+    //
+    class modsymbol final {
+        const void *handle;
+
+        public:
+
+        // Pointer to the symbol.
+        const void *ptr;
+
+        //
+        // Create a module object from a library handle and a symbol pointer.
+        //
+        explicit modsymbol(const void *h, const void *p);
+
+        //
+        // Move-construct a module object; there can be no more than one
+        // reference to the backing store at a time.
+        //
+        modsymbol(modsymbol &&) noexcept;
+
+        modsymbol(const modsymbol &) = delete;
+
+        //
+        // Closes the backing store (library) when object goes out of scope.
+        //
+        ~modsymbol();
+
+        modsymbol &operator=(const modsymbol &) = delete;
+    };
+
+    //
+    // Attempt to find "sym" in module "from", and return a modsymbol
+    // containing it. Throws a std::runtime_error on any error.
+    //
+    modsymbol
+    load_modsymbol(const char *sym, const char *from);
+
+    //
+    // Helper template function to declutter conversion of the symbol pointer
+    // to a qualified object (or function) pointer type.
+    //
+    template<typename T>
+    T
+    get_symbol(const modsymbol &ms)
+    {
+        return reinterpret_cast<T>(const_cast<void *>(ms.ptr));
+    }
 }
 
 //

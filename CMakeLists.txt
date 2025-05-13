@@ -9,6 +9,7 @@ add_compile_options(-Wall -O2)
 add_library(posix++ SHARED
         auto_fd.cc
         auto_pipe.cc
+        module.cc
         posix_error.cc
         process.cc)
 
