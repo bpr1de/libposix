@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 Bryan Phillippe
+// Copyright (c) 2025 Bryan Phillippe
 //
 // This software is free to use for any purpose, provided this copyright
 // notice is preserved.
