@@ -21,14 +21,14 @@ namespace posixcc {
         explicit posixcc_error(int e);
     };
 
-    /**
-     * A wrapper class for providing automatic destruction semantics for file
-     * descriptors. Use this as you would a normal file descriptor; if not
-     * explicitly closed, it will automatically be closed upon destruction
-     * (such as when it goes out of scope).
-     *
-     * Additional convenience methods provided.
-     */
+    //
+    // A wrapper class for providing automatic destruction semantics for file
+    // descriptors. Use this as you would a normal file descriptor; if not
+    // explicitly closed, it will automatically be closed upon destruction
+    // (such as when it goes out of scope).
+    //
+    // Additional convenience methods provided.
+    //
     class auto_fd final {
         protected:
 
@@ -36,53 +36,53 @@ namespace posixcc {
 
         public:
 
-        /**
-         * Construction
-         */
+        //
+        // Construction
+        //
         auto_fd(int i = -1) noexcept;
         auto_fd(const auto_fd& i) noexcept;
         auto_fd(auto_fd&& i) noexcept;
         ~auto_fd();
 
-        /**
-         * Assignment
-         */
+        //
+        // Assignment
+        //
         auto_fd& operator=(int i) noexcept;
         auto_fd& operator=(const auto_fd& i) noexcept;
         auto_fd& operator=(auto_fd&& i) noexcept;
 
-        /**
-         * Context-sensitive usage
-         */
+        //
+        // Context-sensitive usage
+        //
         operator int() const noexcept;
         explicit operator bool() const noexcept;
 
-        /**
-         * Comparison of numerical file descriptor values is seldom an
-         * intended operation
-         */
+        //
+        // Comparison of numerical file descriptor values is seldom an
+        // intended operation
+        //
         bool operator==(const auto_fd&) = delete;
 
-        /**
-         * Getters and setters
-         */
+        //
+        // Getters and setters
+        //
         int get() const noexcept;
         int set(int i) noexcept;
 
-        /**
-         * Cleanup
-         */
+        //
+        // Cleanup
+        //
         int release() noexcept;
         void close() noexcept;
     };
 
-    /**
-     * A wrapper class for providing automatic destruction semantics for pipes.
-     * Close reader/writer ends and use as you would a regular pipe.
-     * Both ends are automatically closed when the pipe goes out of scope.
-     *
-     * Additional convenience methods provided.
-     */
+    //
+    // A wrapper class for providing automatic destruction semantics for pipes.
+    // Close reader/writer ends and use as you would a regular pipe.
+    // Both ends are automatically closed when the pipe goes out of scope.
+    //
+    // Additional convenience methods provided.
+    //
     class auto_pipe {
         protected:
 
@@ -91,39 +91,39 @@ namespace posixcc {
 
         public:
 
-        /**
-         * Construction
-         */
+        //
+        // Construction
+        //
         auto_pipe();
         auto_pipe(const auto_pipe& p) noexcept;
         auto_pipe(auto_pipe&& p) noexcept;
         virtual ~auto_pipe();
 
-        /**
-         * Assignment
-         */
-         auto_pipe& operator=(const auto_pipe& p) noexcept = default;
-         auto_pipe& operator=(auto_pipe&& p) noexcept;
+        //
+        // Assignment
+        //
+        auto_pipe& operator=(const auto_pipe& p) noexcept = default;
+        auto_pipe& operator=(auto_pipe&& p) noexcept;
 
-        /**
-         * Context-sensitive usage
-         */
-         explicit operator bool() const noexcept;
+        //
+        // Context-sensitive usage
+        //
+        explicit operator bool() const noexcept;
 
-        /**
-         * Pipe comparison never makes sense
-         */
-         bool operator==(const auto_pipe&) = delete;
+        //
+        // Pipe comparison never makes sense
+        //
+        bool operator==(const auto_pipe&) = delete;
 
-        /**
-         * Getters
-         */
+        //
+        // Getters
+        //
         int get_rfd() const noexcept;
         int get_wfd() const noexcept;
 
-        /**
-         * Cleanup
-         */
+        //
+        // Cleanup
+        //
         auto_pipe& close_rfd() noexcept;
         auto_pipe& close_wfd() noexcept;
         auto_pipe& close() noexcept;
@@ -146,9 +146,9 @@ namespace posixcc {
     };
 }
 
-/*
- * Inline definitions here
- */
+//
+// Inline definitions here
+//
 
 template<class Fn, class... Args>
 posixcc::process::process(Fn&& f, Args&&... args)
