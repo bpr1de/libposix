@@ -14,7 +14,7 @@ fd{i}
 }
 
 posixcc::auto_fd::auto_fd(const auto_fd& i) noexcept:
-fd{::dup(i)}
+fd{dup(i)}
 {
 }
 
@@ -39,7 +39,7 @@ posixcc::auto_fd::operator=(const int i) noexcept
 posixcc::auto_fd&
 posixcc::auto_fd::operator=(const auto_fd& i) noexcept
 {
-    set(::dup(i));
+    set(dup(i));
     return *this;
 }
 
@@ -150,7 +150,7 @@ auto_fd_tests()
 
     // Verify auto destruction behavior.
     {
-        control_fd = ::mkstemp(tmpfilename);
+        control_fd = mkstemp(tmpfilename);
         posixcc::auto_fd fd = control_fd;
 
         STFU_ASSERT(fd);

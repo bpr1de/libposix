@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2024 Bryan Phillippe
+// Copyright (c) 2025 Bryan Phillippe
 //
 // This software is free to use for any purpose, provided this copyright
 // notice is preserved.
@@ -205,14 +205,14 @@ errno_to_string(int e)
 template<class Fn, class... Args>
 posixcc::process::process(Fn&& f, Args&&... args)
 {
-    switch (pid = ::fork()) {
+    switch (pid = fork()) {
     case -1:
         throw std::runtime_error{errno_to_string(errno)};
         // Not reached
 
     case 0:
         f(args...);
-        ::exit(0);
+        exit(0);
         // Not reached
     }
 }
