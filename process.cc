@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cerrno>
-#include "include/libposix.hh"
+#include <libposix.hh>
 
 pid_t
 posixcc::process::get_id() const noexcept

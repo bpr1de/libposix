@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <sys/errno.h>
 
-#include "include/libposix.hh"
+#include <libposix.hh>
 #include "../stfu/stfu.hh"
 
 static int global_cwd = -1;

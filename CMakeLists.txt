@@ -3,6 +3,9 @@ project(posix++ VERSION 0.0.1 DESCRIPTION "POSIX for C++")
 
 set(CMAKE_CXX_STANDARD 11)
 
+include_directories(include)
+add_compile_options(-Wall -O2)
+
 add_library(posix++ SHARED
         auto_fd.cc
         auto_pipe.cc
@@ -12,8 +15,8 @@ add_library(posix++ SHARED
 set_target_properties(posix++ PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
-        PUBLIC_HEADER include/libposix.hh)
-target_include_directories(posix++ PRIVATE include)
+        PUBLIC_HEADER "include/libposix.hh")
+target_include_directories(posix++ PUBLIC include)
 
 add_executable(test
         unit_test.cc)

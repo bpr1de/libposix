@@ -6,7 +6,7 @@
 //
 
 #include <unistd.h>
-#include "include/libposix.hh"
+#include <libposix.hh>
 
 posixcc::auto_fd::auto_fd(const int i) noexcept:
 fd{i}

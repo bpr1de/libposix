@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <cstring>
-#include "include/libposix.hh"
+#include <libposix.hh>
 
 static std::string
 errno_to_string(int e)

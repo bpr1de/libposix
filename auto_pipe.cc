@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <sys/errno.h>
 #include <algorithm>
-#include "include/libposix.hh"
+#include <libposix.hh>
 
 posixcc::auto_pipe::auto_pipe()
 {
