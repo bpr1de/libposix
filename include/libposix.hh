@@ -7,19 +7,13 @@
 
 #pragma once
 
+#include <string>
+#include <cstring>
 #include <stdexcept>
 #include <unistd.h>
 #include <cerrno>
 
 namespace posixcc {
-
-    class posixcc_error: public std::runtime_error {
-        public:
-
-        const int error;
-
-        explicit posixcc_error(int e);
-    };
 
     //
     // A wrapper class for providing automatic destruction semantics for file
@@ -200,12 +194,20 @@ namespace posixcc {
 // Inline definitions here
 //
 
+inline std::string
+errno_to_string(int e)
+{
+    char errbuf[128];
+    strerror_r(e, errbuf, sizeof(errbuf) - 1);
+    return std::string{errbuf};
+}
+
 template<class Fn, class... Args>
 posixcc::process::process(Fn&& f, Args&&... args)
 {
     switch (pid = ::fork()) {
     case -1:
-        throw posixcc::posixcc_error{errno};
+        throw std::runtime_error{errno_to_string(errno)};
         // Not reached
 
     case 0:

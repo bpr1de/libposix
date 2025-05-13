@@ -10,7 +10,6 @@ add_library(posix++ SHARED
         auto_fd.cc
         auto_pipe.cc
         module.cc
-        posix_error.cc
         process.cc)
 
 set_target_properties(posix++ PROPERTIES
@@ -19,7 +18,25 @@ set_target_properties(posix++ PROPERTIES
         PUBLIC_HEADER "include/libposix.hh")
 target_include_directories(posix++ PUBLIC include)
 
-add_executable(test
-        unit_test.cc)
+add_library(auto_fd_test MODULE
+        auto_fd.cc)
+target_compile_definitions(auto_fd_test PRIVATE AUTO_FD_TEST)
+add_library(auto_pipe_test MODULE
+        auto_fd.cc
+        auto_pipe.cc)
+target_compile_definitions(auto_pipe_test PRIVATE AUTO_PIPE_TEST)
+add_library(process_test MODULE
+        process.cc)
+target_compile_definitions(process_test PRIVATE PROCESS_TEST)
 
-target_link_libraries(test PRIVATE posix++)
+add_executable(test-runner
+        unit_test.cc)
+add_dependencies(test-runner
+        auto_fd_test
+        auto_pipe_test
+        process_test)
+target_link_libraries(test-runner PRIVATE posix++)
+
+add_custom_target(test
+        COMMAND test-runner ./lib*_test.so
+        WORKING_DIRECTORY ${CMAKE_PROJECT_DIR})
