@@ -91,7 +91,7 @@ posixcc::process::detach() const
 }
 
 #ifdef PROCESS_TEST
-#include "../stfu/stfu.hh"
+#include "stfu/stfu.hh"
 
 extern "C" std::size_t
 unit_tests()

@@ -91,7 +91,7 @@ posixcc::auto_pipe::close() noexcept
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/wait.h>
-#include "../stfu/stfu.hh"
+#include "stfu/stfu.hh"
 
 static void
 auto_pipe_tests()

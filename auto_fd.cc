@@ -95,7 +95,7 @@ posixcc::auto_fd::close() noexcept
 #include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
-#include "../stfu/stfu.hh"
+#include "stfu/stfu.hh"
 
 static int global_cwd = -1;
 
