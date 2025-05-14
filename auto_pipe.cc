@@ -40,7 +40,7 @@ posixcc::auto_pipe::~auto_pipe()
 }
 
 posixcc::auto_pipe&
-posixcc::auto_pipe::operator=(posixcc::auto_pipe&& p) noexcept
+posixcc::auto_pipe::operator=(auto_pipe&& p) noexcept
 {
     read_fd = std::move(p.read_fd);
     write_fd = std::move(p.write_fd);

@@ -141,7 +141,7 @@ namespace posixcc {
         // Starts the worker, implicitly cancelling any currently executing
         // worker, if one exists.
         //
-        void start(std::function<void()>) const;
+        void start(const std::function<void()> &) const;
 
         //
         // Returns a unique value representing the ID of the worker.

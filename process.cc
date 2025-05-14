@@ -17,8 +17,8 @@
 
 posixcc::process::~process()
 {
-    if (process::is_running()) {
-        process::stop();
+    if (is_running()) {
+        stop();
     }
 }
 
@@ -29,7 +29,7 @@ posixcc::process::is_running() const
         return false;
     }
 
-    pid_t p = waitpid(child_pid, nullptr, WNOHANG);
+    const pid_t p = waitpid(child_pid, nullptr, WNOHANG);
     if (p == child_pid) {
         child_pid = -1;
         return false;
@@ -39,7 +39,7 @@ posixcc::process::is_running() const
 }
 
 void
-posixcc::process::start(const std::function<void()> task) const
+posixcc::process::start(const std::function<void()> &task) const
 {
     stop();
 

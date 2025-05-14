@@ -13,12 +13,12 @@
 #include <libposix.hh>
 
 posixcc::modsymbol::modsymbol(const void *h, const void *p):
-    ptr{p}, handle{h}
+    handle{h}, ptr{p}
 {
 }
 
 posixcc::modsymbol::modsymbol(modsymbol &&m) noexcept:
-    ptr{m.ptr}, handle{m.handle}
+    handle{m.handle}, ptr{m.ptr}
 {
     m.ptr    = nullptr;
     m.handle = nullptr;
