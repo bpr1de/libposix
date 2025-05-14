@@ -29,6 +29,10 @@ add_library(process_test MODULE
         process.cc)
 target_compile_definitions(process_test PRIVATE PROCESS_TEST)
 
+install(TARGETS posix++
+        LIBRARY DESTINATION lib
+        PUBLIC_HEADER DESTINATION include)
+
 add_executable(test-runner
         unit_test.cc)
 add_dependencies(test-runner
