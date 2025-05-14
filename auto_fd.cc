@@ -108,7 +108,7 @@ test_setup()
         tmpdir = "/tmp";
     }
 
-    global_cwd = open(".", O_RDONLY|O_SEARCH);
+    global_cwd = open(".", O_RDONLY);
     if (0 == chdir(tmpdir)) {
         return true;
     }
@@ -130,7 +130,7 @@ static void
 auto_fd_tests()
 {
     int control_fd;
-    char tmpfilename[] = "auto_fd-test.XXXXX";
+    char tmpfilename[] = "/tmp/auto_fd-test.XXXXXX";
     const std::string msg{"This is a test\n"};
 
     // Verify size-consistency with a file descriptor.
@@ -159,7 +159,8 @@ auto_fd_tests()
         STFU_ASSERT(fd.get() == control_fd);
 
         // Validate that we can write to the auto_fd like an int.
-        STFU_ASSERT(msg.length() == write(fd, msg.c_str(), msg.length()));
+        STFU_ASSERT(static_cast<ssize_t>(msg.length()) ==
+            write(fd, msg.c_str(), msg.length()));
     }
 
     // Validate that the auto_fd closed the file descriptor.
@@ -170,7 +171,7 @@ auto_fd_tests()
     posixcc::auto_fd fd{open(tmpfilename, O_RDONLY)};
     ssize_t l = read(control_fd, buffer, sizeof(buffer));
     buffer[l] = '\0';
-    STFU_ASSERT(l == msg.length());
+    STFU_ASSERT(l == static_cast<ssize_t>(msg.length()));
     STFU_ASSERT(msg == buffer);
 
     // Verify move semantics.
