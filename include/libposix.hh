@@ -11,7 +11,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <unistd.h>
-#include <cerrno>
+#include <functional>
 
 namespace posixcc {
 
@@ -123,20 +123,55 @@ namespace posixcc {
         auto_pipe& close() noexcept;
     };
 
+    //
+    // Implementation of a worker using a UNIX process.
+    //
     class process {
-        protected:
-
-        mutable pid_t pid{-1};
-
         public:
 
-        process() noexcept = default;
-        template<class Fn, class... Args>
-        explicit process(Fn&& f, Args&&... args);
+        process() = default;
+        ~process();
 
-        pid_t get_id() const noexcept;
+        //
+        // Returns true if the worker is currently executing, false otherwise.
+        //
+        bool is_running() const;
 
-        int join() const;
+        //
+        // Starts the worker, implicitly cancelling any currently executing
+        // worker, if one exists.
+        //
+        void start(std::function<void()>) const;
+
+        //
+        // Returns a unique value representing the ID of the worker.
+        // Its value is undefined if the worker is not running.
+        //
+        // Note that this value is implementation-defined and is only
+        // guaranteed to be unique within the instance of the application.
+        //
+        std::size_t get_id() const;
+
+        //
+        // Suspends execution of the caller until the worker has finished
+        // running.
+        //
+        void join() const;
+
+        //
+        // Forcibly stops the worker if it's actively running. Does not block.
+        //
+        void stop() const;
+
+        //
+        // Detaches the worker into the background, allowing it to run
+        // independently. Once detached, it can not be stopped or joined.
+        //
+        void detach() const;
+
+        protected:
+
+        mutable pid_t child_pid{-1};
     };
 
     //
@@ -200,19 +235,4 @@ errno_to_string(int e)
     char errbuf[128];
     strerror_r(e, errbuf, sizeof(errbuf) - 1);
     return std::string{errbuf};
-}
-
-template<class Fn, class... Args>
-posixcc::process::process(Fn&& f, Args&&... args)
-{
-    switch (pid = fork()) {
-    case -1:
-        throw std::runtime_error{errno_to_string(errno)};
-        // Not reached
-
-    case 0:
-        f(args...);
-        exit(0);
-        // Not reached
-    }
 }
