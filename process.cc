@@ -15,11 +15,25 @@
 
 #include <libposix.hh>
 
+posixcc::process::process(process&& p) noexcept:
+child_pid{p.child_pid}
+{
+    p.detach();
+}
+
 posixcc::process::~process()
 {
     if (is_running()) {
         stop();
     }
+}
+
+posixcc::process&
+posixcc::process::operator=(posixcc::process&& p) noexcept
+{
+    child_pid = p.child_pid;
+    p.detach();
+    return *this;
 }
 
 bool
@@ -134,12 +148,30 @@ unit_tests()
         },
         "Verify that detached workers no longer appear to be running."
     };
+    stfu::test move_test{"move test", [] {
+        posixcc::process worker;
+        std::vector<posixcc::process> workers;
+        worker.start([]{::sleep(1);});
+        std::size_t id = worker.get_id();
+        workers.push_back(std::move(worker));
+        STFU_ASSERT(!worker.is_running());
+        STFU_ASSERT(workers[0].is_running());
+        STFU_ASSERT(workers[0].get_id() == id);
+
+        posixcc::process worker2;
+        worker2 = std::move(workers[0]);
+        STFU_ASSERT(worker2.get_id() == id);
+        STFU_PASS();
+        },
+        "Confirm copy and move operations."
+    };
 
     stfu::test_group unit_tests{"worker tests",
         "Self-tests of the worker module."};
     unit_tests.add_test(basic_test);
     unit_tests.add_test(cancel_test);
     unit_tests.add_test(detached_test);
+    unit_tests.add_test(move_test);
 
     stfu::test_result_summary summary = unit_tests();
     return summary.failed + summary.crashed;

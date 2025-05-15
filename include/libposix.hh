@@ -24,7 +24,6 @@ namespace posixcc {
     // Additional convenience methods provided.
     //
     class auto_fd final {
-        protected:
 
         int fd{-1};
 
@@ -127,10 +126,25 @@ namespace posixcc {
     // Implementation of a worker using a UNIX process.
     //
     class process {
+        protected:
+
+        mutable pid_t child_pid{-1};
+
         public:
 
+        //
+        // Construction
+        //
         process() = default;
+        process(const process&) = delete;
+        process(process&& p) noexcept;
         ~process();
+
+        //
+        // Assignment
+        //
+        process& operator=(const process&) = delete;
+        process& operator=(process&& p) noexcept;
 
         //
         // Returns true if the worker is currently executing, false otherwise.
@@ -168,10 +182,6 @@ namespace posixcc {
         // independently. Once detached, it can not be stopped or joined.
         //
         void detach() const;
-
-        protected:
-
-        mutable pid_t child_pid{-1};
     };
 
     //
