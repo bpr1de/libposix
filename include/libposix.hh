@@ -132,6 +132,9 @@ namespace posixcc {
 
         public:
 
+        static void enable_zombies(bool);
+        static void reap_all() noexcept;
+
         //
         // Construction
         //
