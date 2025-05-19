@@ -10,7 +10,6 @@
 #include <string>
 #include <cstring>
 #include <stdexcept>
-#include <unistd.h>
 #include <functional>
 
 namespace posixcc {
@@ -191,12 +190,12 @@ namespace posixcc {
     // A module symbol - a pointer to a C symbol loaded from a module object.
     //
     class modsymbol final {
-        const void *handle;
+        const void *handle{nullptr};
+        const void *ptr{nullptr};
 
         public:
 
-        // Pointer to the symbol.
-        const void *ptr;
+        modsymbol() = default;
 
         //
         // Create a module object from a library handle and a symbol pointer.
@@ -216,7 +215,12 @@ namespace posixcc {
         //
         ~modsymbol();
 
+        modsymbol &operator=(modsymbol &&) noexcept;
         modsymbol &operator=(const modsymbol &) = delete;
+
+        template<typename T>
+        friend T
+        get_symbol(const modsymbol &);
     };
 
     //

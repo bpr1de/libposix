@@ -24,6 +24,18 @@ posixcc::modsymbol::modsymbol(modsymbol &&m) noexcept:
     m.handle = nullptr;
 }
 
+posixcc::modsymbol &
+posixcc::modsymbol::operator=(modsymbol &&m) noexcept
+{
+    ptr    = m.ptr;
+    handle = m.handle;
+
+    m.ptr    = nullptr;
+    m.handle = nullptr;
+
+    return *this;
+}
+
 posixcc::modsymbol::~modsymbol()
 {
     if (handle) {
