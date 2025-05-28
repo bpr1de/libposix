@@ -12,6 +12,7 @@ add_library(posix++ SHARED
         module.cc
         process.cc)
 
+target_link_libraries(posix++ ${CMAKE_DL_LIBS})
 set_target_properties(posix++ PROPERTIES
         VERSION ${PROJECT_VERSION}
         SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -39,7 +40,7 @@ add_dependencies(test-runner
         auto_fd_test
         auto_pipe_test
         process_test)
-target_link_libraries(test-runner PRIVATE posix++)
+target_link_libraries(test-runner PRIVATE ${CMAKE_DL_LIBS} posix++)
 
 add_custom_target(test
         COMMAND test-runner ./lib*_test.so
