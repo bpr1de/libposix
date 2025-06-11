@@ -15,7 +15,7 @@
 
 #include <libposix.hh>
 
-void posixcc::process::enable_zombies(bool enabled)
+void posixcc::worker_process::enable_zombies(bool enabled)
 {
     struct sigaction act{};
 
@@ -32,27 +32,27 @@ void posixcc::process::enable_zombies(bool enabled)
     }
 }
 
-void posixcc::process::reap_all() noexcept
+void posixcc::worker_process::reap_all() noexcept
 {
     while (waitpid(0, nullptr, WNOHANG) > 0) {
     }
 }
 
-posixcc::process::process(process&& p) noexcept:
+posixcc::worker_process::worker_process(worker_process&& p) noexcept:
 child_pid{p.child_pid}
 {
     p.detach();
 }
 
-posixcc::process::~process()
+posixcc::worker_process::~worker_process()
 {
     if (is_running()) {
         stop();
     }
 }
 
-posixcc::process&
-posixcc::process::operator=(process&& p) noexcept
+posixcc::worker_process&
+posixcc::worker_process::operator=(worker_process&& p) noexcept
 {
     child_pid = p.child_pid;
     p.detach();
@@ -60,7 +60,7 @@ posixcc::process::operator=(process&& p) noexcept
 }
 
 bool
-posixcc::process::is_running() const
+posixcc::worker_process::is_running() const
 {
     if (-1 == child_pid) {
         return false;
@@ -76,7 +76,7 @@ posixcc::process::is_running() const
 }
 
 void
-posixcc::process::start(const std::function<void()> &task) const
+posixcc::worker_process::start(const std::function<void()> &task) const
 {
     stop();
 
@@ -96,13 +96,13 @@ posixcc::process::start(const std::function<void()> &task) const
 }
 
 std::size_t
-posixcc::process::get_id() const
+posixcc::worker_process::get_id() const
 {
     return child_pid > 0 ? child_pid : 0;
 }
 
 void
-posixcc::process::join() const
+posixcc::worker_process::join() const
 {
     static constexpr std::size_t delay_max = 1000;
     std::size_t delay_ms                   = 10;
@@ -114,7 +114,7 @@ posixcc::process::join() const
 }
 
 void
-posixcc::process::stop() const
+posixcc::worker_process::stop() const
 {
     if (-1 != child_pid) {
         kill(child_pid, SIGTERM);
@@ -122,7 +122,7 @@ posixcc::process::stop() const
 }
 
 void
-posixcc::process::detach() const
+posixcc::worker_process::detach() const
 {
     child_pid = -1;
 }
@@ -134,7 +134,7 @@ extern "C" std::size_t
 unit_tests()
 {
     stfu::test basic_test{"fork test", [] {
-            posixcc::process worker;
+            posixcc::worker_process worker;
             STFU_ASSERT(!worker.is_running());
             worker.start([]{sleep(1);});
             STFU_ASSERT(worker.is_running());
@@ -144,7 +144,7 @@ unit_tests()
         "Check to see if the forked worker is created and joined properly."
     };
     stfu::test cancel_test{"stop test", [] {
-            posixcc::process worker;
+            posixcc::worker_process worker;
             worker.start([]{sleep(30);});
             STFU_ASSERT(worker.is_running());
             worker.stop();
@@ -154,7 +154,7 @@ unit_tests()
         "Verify that workers can be cancelled."
     };
     stfu::test detached_test{"detached worker", [] {
-            posixcc::process worker;
+            posixcc::worker_process worker;
             pid_t id = 0;
 
             worker.start([]{sleep(30);});
@@ -171,8 +171,8 @@ unit_tests()
         "Verify that detached workers no longer appear to be running."
     };
     stfu::test move_test{"move test", [] {
-        posixcc::process worker;
-        std::vector<posixcc::process> workers;
+        posixcc::worker_process worker;
+        std::vector<posixcc::worker_process> workers;
         worker.start([]{sleep(1);});
         std::size_t id = worker.get_id();
         workers.push_back(std::move(worker));
@@ -180,15 +180,15 @@ unit_tests()
         STFU_ASSERT(workers[0].is_running());
         STFU_ASSERT(workers[0].get_id() == id);
 
-        posixcc::process worker2;
+        posixcc::worker_process worker2;
         worker2 = std::move(workers[0]);
         STFU_PASS_IFF(worker2.get_id() == id);
         },
         "Confirm copy and move operations."
     };
     stfu::test no_zombies{"disable zombies", [] {
-        posixcc::process worker;
-        posixcc::process::enable_zombies(false);
+        posixcc::worker_process worker;
+        posixcc::worker_process::enable_zombies(false);
         worker.start([]{});
         sleep(1);
         STFU_PASS_IFF(-1 == kill(worker.get_id(), 0));
@@ -196,10 +196,10 @@ unit_tests()
         "Confirm that zombies can be disabled."
     };
     stfu::test reap_test{"reap test", [] {
-        posixcc::process worker1;
-        posixcc::process workerN;
-        posixcc::process worker2;
-        posixcc::process::enable_zombies(true);
+        posixcc::worker_process worker1;
+        posixcc::worker_process workerN;
+        posixcc::worker_process worker2;
+        posixcc::worker_process::enable_zombies(true);
         worker1.start([]{});
         for (auto i = 0; i < 10; ++i) {
             workerN.start([]{});
@@ -209,7 +209,7 @@ unit_tests()
         sleep(1);
         STFU_ASSERT(!kill(worker1.get_id(), 0) &&
             !kill(worker2.get_id(), 0));
-        posixcc::process::reap_all();
+        posixcc::worker_process::reap_all();
         STFU_PASS_IFF(-1 == kill(worker1.get_id(), 0) &&
             -1 == kill(worker2.get_id(), 0));
         },

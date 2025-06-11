@@ -124,7 +124,7 @@ namespace posixcc {
     //
     // Implementation of a worker using a UNIX process.
     //
-    class process {
+    class worker_process {
         protected:
 
         mutable pid_t child_pid{-1};
@@ -137,16 +137,16 @@ namespace posixcc {
         //
         // Construction
         //
-        process() = default;
-        process(const process&) = delete;
-        process(process&& p) noexcept;
-        ~process();
+        worker_process() = default;
+        worker_process(const worker_process&) = delete;
+        worker_process(worker_process&& p) noexcept;
+        ~worker_process();
 
         //
         // Assignment
         //
-        process& operator=(const process&) = delete;
-        process& operator=(process&& p) noexcept;
+        worker_process& operator=(const worker_process&) = delete;
+        worker_process& operator=(worker_process&& p) noexcept;
 
         //
         // Returns true if the worker is currently executing, false otherwise.
