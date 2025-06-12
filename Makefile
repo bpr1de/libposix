@@ -6,7 +6,7 @@
 CMAKE_DIR ?= cmake-build-debug
 
 all: $(CMAKE_DIR)
-	make -C $(CMAKE_DIR)
+	$(MAKE) -C $(CMAKE_DIR)
 
 $(CMAKE_DIR):
 	cmake -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" -S . -B $(CMAKE_DIR)
