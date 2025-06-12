@@ -128,10 +128,18 @@ namespace posixcc {
         protected:
 
         mutable pid_t child_pid{-1};
+        void release() const noexcept;
 
         public:
 
+        //
+        // Enables or disables zombie process accumulation.
+        //
         static void enable_zombies(bool);
+
+        //
+        // Blocks until all zombie processes have been reaped.
+        //
         static void reap_all() noexcept;
 
         //
@@ -140,7 +148,7 @@ namespace posixcc {
         worker_process() = default;
         worker_process(const worker_process&) = delete;
         worker_process(worker_process&& p) noexcept;
-        ~worker_process();
+        virtual ~worker_process();
 
         //
         // Assignment
@@ -157,7 +165,7 @@ namespace posixcc {
         // Starts the worker, implicitly cancelling any currently executing
         // worker, if one exists.
         //
-        void start(const std::function<void()> &) const;
+        virtual void start(const std::function<void()> &) const;
 
         //
         // Returns a unique value representing the ID of the worker.
@@ -178,12 +186,33 @@ namespace posixcc {
         // Forcibly stops the worker if it's actively running. Does not block.
         //
         void stop() const;
+    };
+
+    //
+    // Implementation of a daemon using a UNIX process.
+    //
+    class worker_daemon: public worker_process {
+        public:
 
         //
-        // Detaches the worker into the background, allowing it to run
-        // independently. Once detached, it can not be stopped or joined.
+        // Construction
         //
-        void detach() const;
+        worker_daemon() = default;
+        worker_daemon(const worker_daemon&) = delete;
+        worker_daemon(worker_daemon&& p) noexcept;
+        ~worker_daemon() override;
+
+        //
+        // Assignment
+        //
+        worker_daemon& operator=(const worker_daemon&) = delete;
+        worker_daemon& operator=(worker_daemon&& p) noexcept;
+
+        //
+        // Starts the worker, implicitly cancelling any currently executing
+        // worker, if one exists.
+        //
+        void start(const std::function<void()> &) const override;
     };
 
     //

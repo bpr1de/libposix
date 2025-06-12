@@ -38,10 +38,16 @@ void posixcc::worker_process::reap_all() noexcept
     }
 }
 
+void
+posixcc::worker_process::release() const noexcept
+{
+    child_pid = -1;
+}
+
 posixcc::worker_process::worker_process(worker_process&& p) noexcept:
 child_pid{p.child_pid}
 {
-    p.detach();
+    p.release();
 }
 
 posixcc::worker_process::~worker_process()
@@ -55,7 +61,7 @@ posixcc::worker_process&
 posixcc::worker_process::operator=(worker_process&& p) noexcept
 {
     child_pid = p.child_pid;
-    p.detach();
+    p.release();
     return *this;
 }
 
@@ -121,10 +127,44 @@ posixcc::worker_process::stop() const
     }
 }
 
-void
-posixcc::worker_process::detach() const
+posixcc::worker_daemon::worker_daemon(worker_daemon&& p) noexcept
 {
-    child_pid = -1;
+    child_pid = p.child_pid;
+    p.release();
+}
+
+posixcc::worker_daemon::~worker_daemon()
+{
+    release();
+}
+
+posixcc::worker_daemon&
+posixcc::worker_daemon::operator=(worker_daemon&& p) noexcept
+{
+    child_pid = p.child_pid;
+    p.release();
+    return *this;
+}
+
+void
+posixcc::worker_daemon::start(const std::function<void()> &task) const
+{
+    stop();
+
+    switch (child_pid = fork()) {
+    case -1:
+        throw std::runtime_error("fork failed" + std::to_string(errno));
+
+        // Child
+    case 0:
+        setsid();
+        task();
+        exit(EXIT_SUCCESS);
+
+        // Parent
+    default:
+        break;
+    }
 }
 
 #ifdef PROCESS_TEST
@@ -153,22 +193,21 @@ unit_tests()
         },
         "Verify that workers can be cancelled."
     };
-    stfu::test detached_test{"detached worker", [] {
-            posixcc::worker_process worker;
+    stfu::test daemon_test{"daemon", [] {
             pid_t id = 0;
+            {
+                posixcc::worker_daemon worker;
 
-            worker.start([]{sleep(30);});
-            STFU_ASSERT(worker.is_running());
-            id = worker.get_id();
-            STFU_ASSERT(id > 0);
-            worker.detach();
-            STFU_ASSERT(!worker.is_running());
-            STFU_ASSERT(0 == worker.get_id());
+                worker.start([]{sleep(30);});
+                STFU_ASSERT(worker.is_running());
+                id = worker.get_id();
+                STFU_ASSERT(id > 0);
+            }
             STFU_ASSERT(!kill(id, 0));
             kill(id, SIGKILL);
             STFU_PASS();
         },
-        "Verify that detached workers no longer appear to be running."
+        "Verify that daemon workers run in the background."
     };
     stfu::test move_test{"move test", [] {
         posixcc::worker_process worker;
@@ -197,13 +236,12 @@ unit_tests()
     };
     stfu::test reap_test{"reap test", [] {
         posixcc::worker_process worker1;
-        posixcc::worker_process workerN;
         posixcc::worker_process worker2;
+        posixcc::worker_process workerN[10];
         posixcc::worker_process::enable_zombies(true);
         worker1.start([]{});
-        for (auto i = 0; i < 10; ++i) {
-            workerN.start([]{});
-            workerN.detach();
+        for (auto &i: workerN) {
+            i.start([]{});
         }
         worker2.start([]{});
         sleep(1);
@@ -220,7 +258,7 @@ unit_tests()
         "Self-tests of the worker module."};
     unit_tests.add_test(basic_test)
         .add_test(cancel_test)
-        .add_test(detached_test)
+        .add_test(daemon_test)
         .add_test(move_test)
         .add_test(no_zombies)
         .add_test(reap_test)
