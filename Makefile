@@ -3,7 +3,7 @@
 # CMake.
 #
 
-CMAKE_DIR := cmake-build-debug
+CMAKE_DIR ?= cmake-build-debug
 
 all: $(CMAKE_DIR)
 	make -C $(CMAKE_DIR)
